@@ -1,34 +1,26 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <stdbool.h>
 
-#include <stdio.h>
+/*
 
-/*ex)
-
-#include <stdio.h>
+example)
 
 int main()
 {
-    dsu *d = init_dsu(4);
-    merge_dsu(d, 0, 1);
-    assert(same_dsu(d, 0, 1) == true);
-    merge_dsu(d, 1, 2);
-    assert(same_dsu(d, 0, 2) == true);
-    assert(size_dsu(d, 0) == 3);
-    assert(same_dsu(d, 0, 3) == false);
+    dsu *d = dsu_init(4);
+    dsu_merge(d, 0, 1);
+    assert(dsu_same(d, 0, 1) == true);
+    dsu_merge(d, 1, 2);
+    assert(dsu_same(d, 0, 2) == true);
+    assert(dsu_size(d, 0) == 3);
+    assert(dsu_same(d, 0, 3) == false);
 }
 
 */
-
-typedef struct result_groups_dsu
-{
-    int group_number;
-    int *group_size;
-    int **result;
-} result_groups_dsu;
 
 typedef struct dsu
 {
@@ -36,14 +28,14 @@ typedef struct dsu
     int *parent_or_size;
 } dsu;
 
-dsu *init_dsu(int n);
-int merge_dsu(dsu *, int, int);
-bool same_dsu(dsu *, int, int);
-int leader_dsu(dsu *, int);
-int size_dsu(dsu *, int);
-void groups_dsu(dsu *);
+dsu *dsu_init(int n);
+int dsu_merge(dsu *, int, int);
+bool dsu_same(dsu *, int, int);
+int dsu_leader(dsu *, int);
+int dsu_size(dsu *, int);
+void dsu_groups(dsu *);
 
-dsu *init_dsu(int n)
+dsu *dsu_init(int n)
 {
     dsu *ret = malloc(sizeof(dsu));
     ret->_n = n;
@@ -51,11 +43,11 @@ dsu *init_dsu(int n)
     memset(ret->parent_or_size, -1, n * sizeof(int));
     return ret;
 }
-int merge_dsu(dsu *d, int a, int b)
+int dsu_merge(dsu *d, int a, int b)
 {
     assert(0 <= a && a < d->_n);
     assert(0 <= b && b < d->_n);
-    int x = leader_dsu(d, a), y = leader_dsu(d, b);
+    int x = dsu_leader(d, a), y = dsu_leader(d, b);
     if (x == y)
         return x;
     if (-d->parent_or_size[x] < -d->parent_or_size[y])
@@ -68,28 +60,28 @@ int merge_dsu(dsu *d, int a, int b)
     d->parent_or_size[y] = x;
     return x;
 }
-bool same_dsu(dsu *d, int a, int b)
+bool dsu_same(dsu *d, int a, int b)
 {
     assert(0 <= a && a < d->_n);
     assert(0 <= b && b < d->_n);
-    return leader_dsu(d, a) == leader_dsu(d, b);
+    return dsu_leader(d, a) == dsu_leader(d, b);
 }
 
-int leader_dsu(dsu *d, int a)
+int dsu_leader(dsu *d, int a)
 {
     assert(0 <= a && a < d->_n);
     if (d->parent_or_size[a] < 0)
         return a;
-    return d->parent_or_size[a] = leader_dsu(d, d->parent_or_size[a]);
+    return d->parent_or_size[a] = dsu_leader(d, d->parent_or_size[a]);
 }
 
-int size_dsu(dsu *d, int a)
+int dsu_size(dsu *d, int a)
 {
     assert(0 <= a && a < d->_n);
-    return -d->parent_or_size[leader_dsu(d, a)];
+    return -d->parent_or_size[dsu_leader(d, a)];
 }
 
-void groups_dsu(dsu *d)
+void dsu_groups(dsu *d)
 {
     //TODO
 }
