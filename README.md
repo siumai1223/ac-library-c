@@ -10,6 +10,7 @@
 
 - dsu
 - vector
+- segtree
 
 # その他
 
