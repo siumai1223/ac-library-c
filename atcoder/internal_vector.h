@@ -35,6 +35,7 @@ typedef struct vector
 
 vector *vector_init(int n, void *x, int data_size)
 {
+    assert(n != 0);
     vector *ret = (vector *)malloc(sizeof(vector));
     ret->n = n;
     ret->max = n;
@@ -52,7 +53,7 @@ void vector_push(vector *v, void *x)
     if (v->n == v->max)
     {
         v->max *= 2;
-        assert(realloc(v->data, v->max * sizeof(int)) != NULL);
+        assert((v->data = realloc(v->data, v->max * v->data_size)) != NULL);
     }
     memcpy(v->data + v->data_size * v->n, x, v->data_size);
     v->n++;
