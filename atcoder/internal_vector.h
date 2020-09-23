@@ -26,6 +26,7 @@ int main(){
 }
 
 */
+typedef struct vector vector;
 
 typedef struct vector
 {
@@ -33,18 +34,15 @@ typedef struct vector
     void *data;
 } vector;
 
-vector *vector_init(int n, void *x, int data_size)
+vector *vector_init(int n, int data_size)
 {
     assert(n != 0);
     vector *ret = (vector *)malloc(sizeof(vector));
-    ret->n = n;
+    ret->n = 0;
     ret->max = n;
     ret->data_size = data_size;
     ret->data = malloc(n * data_size);
-    for (int i = 0; i < n; i++)
-    {
-        memcpy(ret->data + ret->data_size * i, x, ret->data_size);
-    }
+    memset(ret->data, 0, n * ret->data_size);
     return ret;
 }
 
