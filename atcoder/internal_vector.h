@@ -11,7 +11,7 @@ bool f(const void* x){
 
 int main(){
     int a=1,b=2,c=3,d=4;
-    vector* v=vector_init(3,(void*)&a,sizeof(int));
+    vector* v=vector_init(3,sizeof(int));
     vector_push(v,(void*)&b);
     vector_push(v,(void*)&c);
     vector_push(v,(void*)&d);
