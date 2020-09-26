@@ -106,8 +106,7 @@ seg *seg_init(int n, long long a[], long long (*op)(long long, long long), long 
     ret->get = seg_get;
     ret->prod = seg_prod;
     ret->update = seg_update;
-    // 初期化時にNULLを入れると単位元で初期化される
-    // 予定だったがバグってます、助けて
+    // 初期化時にNULLを入れると単位元で初期化されます
     if(a==NULL){
         for(int i = 0; i < x; i++){
             ret->node[x-1+i]=ret->e();
