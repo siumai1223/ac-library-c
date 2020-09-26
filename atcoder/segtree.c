@@ -89,7 +89,7 @@ void seg_update(seg *S, int x, long long val)
     }
 }
 
-seg *seg_init(int n, long long a[], long long (*op)(long long,long long), long long(*e)())
+seg *seg_init(int n, long long a[], long long (*op)(long long, long long), long long(*e)())
 {
     seg *ret = (seg*)malloc(sizeof(seg));
     int x = 1;
@@ -106,7 +106,8 @@ seg *seg_init(int n, long long a[], long long (*op)(long long,long long), long l
     ret->get = seg_get;
     ret->prod = seg_prod;
     ret->update = seg_update;
-    // rep (i,0,x) {
+    // 初期化時にNULLを入れると単位元で初期化される
+    // 予定だったがバグってます、助けて
     if(a==NULL){
         for(int i = 0; i < x; i++){
             ret->node[x-1+i]=ret->e();
