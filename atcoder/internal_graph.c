@@ -1,5 +1,8 @@
 AOJ:Depth First Search　(http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=ALDS1_11_B&lang=ja) での使用例　
 http://judge.u-aizu.ac.jp/onlinejudge/review.jsp?rid=5179323#1
+
+グラフ初期化時の引数は 頂点数,1(頂点ごとの隣接数だが、足りなくなる度に増やす　←この引数必要？)
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
