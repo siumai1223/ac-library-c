@@ -1,13 +1,10 @@
 AOJ:Depth First Search　(http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=ALDS1_11_B&lang=ja) での使用例　
-http://judge.u-aizu.ac.jp/onlinejudge/review.jsp?rid=5178038#1
+http://judge.u-aizu.ac.jp/onlinejudge/review.jsp?rid=5179323#1
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
 #include<assert.h>
-typedef long long ll;
-#define rep(i,l,r)for(ll i=(l);i<(r);i++)
-
 
 #pragma region vector
 
@@ -18,7 +15,7 @@ typedef struct vector {
     void *data;
     void (*push)(vector*, void*);
     void (*set)(vector*, int, void*);
-    ll (*get)(vector*, int);
+    long long (*get)(vector*, int);
     double (*get_double)(vector*, int);
     int (*size)(vector*);
 } vector;
@@ -40,13 +37,15 @@ void vector_set(vector *v, int idx, void *x) {
 void *vector_get_internal(vector *v, int idx) {
     return (v->data + v->data_size * idx);
 }
-ll vector_get(vector *v, int idx){
-    ll ret=0;
-    if(v->data_size == 8) ret = *(ll*)vector_get_internal(v, idx);
+
+long long vector_get(vector *v, int idx){
+    long long ret=0;
+    if(v->data_size == 8) ret = *(long long*)vector_get_internal(v, idx);
     if(v->data_size == 4) ret = *(int*)vector_get_internal(v, idx);
     if(v->data_size == 2) ret = *(bool*)vector_get_internal(v, idx);
     return ret;
 }
+
 double vector_get_double(vector *v, int idx){
     assert(v->data_size == sizeof(double));
     return *(double*)vector_get(v, idx);
@@ -86,8 +85,10 @@ vector *vector_init(int n, int data_size) {
 
 #pragma endregion vector
 
+
 #pragma region vector2
 typedef struct vector2 vector2;
+
 typedef struct vector2{
     int n, max, data_size;
     vector **vec;
@@ -99,7 +100,7 @@ void vector2_push(vector2 *v2, int n){
     if (v2->n == v2->max) {
         v2->max *= 2;
         assert((v2->vec = realloc(v2->vec, v2->max * sizeof(vector))) != NULL);
-        rep(i, v2->n, v2->max){
+        for(int i=v2->n; i<v2->max; i++){
             v2->vec[i + 1] = vector_init(1, v2->data_size);
         }
     }
@@ -113,13 +114,14 @@ vector2 *vector2_init(int n, int data_size) {
     ret->max = n;
     ret->data_size = data_size;
     ret->vec = (vector **)malloc(n * sizeof(vector*));
-    rep(i,0,n){
+    for(int i=0; i<n; i++){
         (ret->vec[i]) = vector_init(1, sizeof(data_size));
     }
     ret->push = vector2_push;
     return ret;
 }
 #pragma endregion vector2
+
 
 #pragma region graph
 
@@ -130,20 +132,25 @@ typedef struct graph {
     vector **vec_to;
     vector **vec_cost;
     int *ed_cnt;
-    void (*push)(graph*, int, int, ll, bool);
+    void (*push)(graph*, int, int, long long, bool);
     int (*to)(graph*, int, int);
-    ll (*cost)(graph*, int, int);
+    long long (*cost)(graph*, int, int);
     double (*cost_double)(graph*, int, int);
 } graph;
 
 
-void graph_push(graph *g, int from, int to, ll cost, bool is_dir) {
+void graph_push(graph *g, int from, int to, long long cost, bool is_dir) {
     g->vec_to[from]->push(g->vec_to[from], (void*)&to);
-    if(g->data_size != sizeof(bool)) g->vec_cost[from]->push(g->vec_cost[from], (void*)&cost);
+    if(g->data_size != sizeof(bool)){
+        g->vec_cost[from]->push(g->vec_cost[from], (void*)&cost);
+    } 
     g->ed_cnt[from]++;
+
     if(is_dir == false){
         g->vec_to[to]->push(g->vec_to[to], (void*)&from);
-        if(g->data_size != sizeof(bool)) g->vec_cost[to]->push(g->vec_cost[to], (void*)&cost);
+        if(g->data_size != sizeof(bool)){
+            g->vec_cost[to]->push(g->vec_cost[to], (void*)&cost);
+        } 
         g->ed_cnt[to]++;
     }
 }
@@ -151,7 +158,7 @@ void graph_push(graph *g, int from, int to, ll cost, bool is_dir) {
 int graph_to(graph *g, int from, int idx){
     return g->vec_to[from]->get(g->vec_to[from], idx);
 }
-ll graph_cost(graph *g, int from, int idx){
+long long graph_cost(graph *g, int from, int idx){
     return g->vec_to[from]->get(g->vec_to[from], idx);
 }
 double graph_cost_double(graph *g, int from, int idx){
@@ -162,12 +169,12 @@ graph *graph_init(int n, int data_size) {
     graph *ret = (graph *)malloc(sizeof(graph));
     ret->data_size = data_size;
     ret->vec_to = (vector **)malloc(n * sizeof(vector*));
-    rep(i,0,n){
+    for(int i=0; i<n; i++){
         (ret->vec_to[i]) = vector_init(1, sizeof(int));
     }
     if(data_size != sizeof(bool)){
         ret->vec_cost = (vector **)malloc(n * sizeof(vector*));
-        rep(i, 0, n){
+        for(int i=0; i<n; i++){
             (ret->vec_cost[i]) = vector_init(1, sizeof(data_size));
         }
     }
