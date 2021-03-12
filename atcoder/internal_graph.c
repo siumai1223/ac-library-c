@@ -131,7 +131,11 @@ typeof_graph graph_cost(graph *g, int from, int idx){
 graph *graph_init(int n) {
     graph *ret = (graph *)malloc(sizeof(graph));
     ret->data_size = sizeof(typeof_graph);
-    ret->ed_cnt = (int *)malloc(n * sizeof(int));
+
+  ret->ed_cnt = (int *)malloc(n * sizeof(int));
+    for(int i=0; i<n; i++){
+        ret->ed_cnt[i] = 0;
+    }
     
     ret->vec_to = (vector **)malloc(n * sizeof(vector*));
     for(int i=0; i<n; i++){
