@@ -142,38 +142,6 @@ int seg_min_left(seg *s, int r, bool (*f)(S)){
 // segtreeここまで
 
 
-ll target;
-bool f(S s){
-    return s < target;
-}
-
-int main(void){
-    int n,q;
-    scanf("%d %d",&n,&q);
- 
-    S a[n];
-    for(int i=0; i<n; i++){
-        scanf("%lld",&a[i]);
-    }
-    seg *s=seg_init(n,a,seg_op_max,seg_e_max);
-
-    ll p,x,y;
-    for(int i=0; i<q; i++){
-        scanf("%lld %lld %lld",&p,&x,&y);
-        if(p==1){
-            seg_set(s,x-1,y);
-        }
-        if(p==2){
-            printf("%lld\n",seg_prod(s,x-1,y));
-        }
-        if(p==3){
-            target = y;
-            printf("%d\n",seg_max_right(s,x-1,f)+1);
-        }
-    }
-    return 0;
-}
-
 
 
 /*
