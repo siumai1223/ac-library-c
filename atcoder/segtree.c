@@ -1,127 +1,190 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <assert.h>
-/* example
-
-int main(){
-    int a=1,b=7,c=3,d=4,e=5;
-    seg* s=seg_init(5,NULL,seg_op_max,seg_e_max);
-    s->update(s,0,a);
-    s->update(s,1,b);
-    s->update(s,2,c);
-    s->update(s,3,d);
-    s->update(s,4,e);
-    for(int i=0;i<5;++i){
-        printf("%lld ",s->get(s,i));
-    }
-    printf("\n");
-    for(int i=0;i<5;++i){
-        for(int j=i;j<5;++j){
-            printf("%lld ",s->prod(s,i,j));
-        }
-        printf("\n");
-    }
-}
-
-*/
-
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+#include<stdbool.h>
+#include<assert.h>
+typedef long long ll;
 #define INF (1LL<<62)
+#define max(a,b) (a>b?a:b)
+#define min(a,b) (a>b?b:a)
+ll gcd(ll a,ll b){return b?gcd(b,a%b):a;}
 
-long long min(long long a, long long b){ return a < b ? a : b; }
-long long max(long long a, long long b){ return a < b ? b : a; }
-long long gcd(long long a,long long b){ return b ? gcd(b, a % b) : a; }
 
-long long seg_e_max(){ return -INF; }
-long long seg_e_min(){ return INF; }
-long long seg_e_sum(){ return 0; }
-long long seg_e_gcd(){ return 0; }
+// segtree ここから
 
-long long seg_op_max(long long a, long long b){ return max(a,b); }
-long long seg_op_min(long long a, long long b){ return min(a,b); }
-long long seg_op_sum(long long a, long long b){ return a+b; }
-long long seg_op_gcd(long long a, long long b){ return gcd(a,b); }
+// typedef struct S{ ll a,b; }S;
+typedef ll S;
+
+S seg_e_max(){ return -INF; }
+S seg_e_min(){ return INF; }
+S seg_e_sum(){ return 0; }
+S seg_e_gcd(){ return 0; }
+
+S seg_op_max(S a, S b){ return max(a,b); }
+S seg_op_min(S a, S b){ return min(a,b); }
+S seg_op_sum(S a, S b){ return a+b; }
+S seg_op_gcd(S a, S b){ return gcd(a,b); }
 
 
 typedef struct seg_tree seg;
-
-typedef struct seg_tree 
-{
-    int _n;
-    long long *node;
-    long long (*op)(long long, long long);
-    long long (*e)(void);
-    long long (*get)(seg*, int);
-    long long (*prod)(seg*, int, int);
-    void (*update)(seg*, int, long long);
+typedef struct seg_tree {
+    int _n,size,_log;
+    S *d;
+    S (*op)(S, S);
+    S (*e)(void);
 } seg;
 
-
-long long seg_get(seg *S, int x)
-{
-    return S->node[S->_n / 2 + x];
+int ceil_pow2(int n) {
+    int x = 0;
+    while ((1U << x) < (unsigned int)(n)) x++;
+    return x;
 }
 
-long long seg_prod_inner(seg *S, int l, int r, int x, int from, int to)
-{
-    if (l <= from && to <= r ) return S->node[x];
-    if (r < from || to < l ) return S->e();
-    return  S->op(
-                seg_prod_inner(S, l, r, 2 * x + 1, from, (from + to) / 2),
-                seg_prod_inner(S, l, r, 2 * x + 2, (from + to) / 2 + 1, to)
-            );
+void seg_update(seg *s, int k){ 
+    s->d[k] = s->op(s->d[2 * k], s->d[2 * k + 1]);
 }
-long long seg_prod(seg *S, int l, int r)
-{
-    return seg_prod_inner(S, l, r, 0, 0, S->_n / 2);
+void seg_set(seg *s, int p, S x){
+    assert(0 <= p && p < s->_n);
+    p += s->size;
+    s->d[p] = x;
+    for(int i = 1; i <= s->_log; i++) seg_update(s, p >> i);
 }
+S seg_get(seg *s, int p){
+    assert(0 <= p && p < s->_n);
+    return s->d[p + s->size];
+}
+S seg_prod(seg *s, int l, int r){
+    assert(0 <= l && l <= r && r <= s->_n);
+    S sml = s->e(), smr = s->e();
+    l += s->size;
+    r += s->size;
 
-void seg_update(seg *S, int x, long long val)
-{
-    long long c = S->_n / 2 + x;
-    S->node[c] = val;
-    while (c > 0)
-    {
-        c--; 
-        c /= 2;
-        S->node[c] = S->op(S->node[2 * (c + 1)], S->node[2 * (c + 1) - 1]);
+    while(l < r){
+        if(l & 1) sml = s->op(sml, s->d[l++]);
+        if(r & 1) smr = s->op(s->d[--r], smr);
+        l >>= 1;
+        r >>= 1;
     }
+    return s->op(sml, smr);
 }
+S seg_all_prod(seg * s){ return s->d[1]; }
 
-seg *seg_init(int n, long long a[], long long (*op)(long long, long long), long long(*e)())
-{
+seg *seg_init(int n, S a[], S (*op)(S,S), S(*e)()) {
     seg *ret = (seg*)malloc(sizeof(seg));
-    int x = 1;
-    ret->_n = 0;
-    while (x < n)
-    {
-        ret->_n += x;
-        x *= 2;
-    } 
-    ret->_n += x;
-    ret->node = (long long *)malloc(ret->_n * sizeof(long long));
+    ret->_n = n;
+    ret->_log = ceil_pow2(n);
+    ret->size = 1 << ret->_log;
+
+    ret->d = (S *)malloc(2 * ret->size * sizeof(S));
+
     ret->op = op;
     ret->e = e;
-    ret->get = seg_get;
-    ret->prod = seg_prod;
-    ret->update = seg_update;
-    // 初期化時にNULLを入れると単位元で初期化されます
-    if(a==NULL){
-        for(int i = 0; i < x; i++){
-            ret->node[x-1+i]=ret->e();
-        }
-    }else{
-        for(int i = 0; i < x; i++){
-            if (i < n) ret->node[x- 1 + i] = a[i];
-            else ret->node[x - 1 + i] = ret->e();
-        }
+
+    for(int i = 0; i < ret->size * 2; i++) ret->d[i] = ret->e();
+
+    if(a != NULL){
+        for(int i = 0; i < n; i++) ret->d[ret->size + i] = a[i];
     }
-    while (x /= 2) {
-        for(int i = 0; i < x; i++){
-            int p = 2 * (x + i);
-            ret->node[x + i - 1] = ret->op(ret->node[p], ret->node[p - 1]);
-        }
+    for(int i = ret->size - 1; i>= 1; i--){
+        seg_update(ret, i);
     }
+
     return ret;
 }
+
+int seg_max_right(seg *s, int l, bool (*f)(S)){
+    assert(0 <= l && l <= s->_n);
+    assert(f(s->e()));
+    if(l == s->_n) return s->_n;
+    l += s->size;
+    S sm = s->e();
+    do{
+        while(l % 2 == 0) l >>= 1;
+        if(!f(s->op(sm, s->d[l]))){
+            while(l < s->size){
+                l = (2 * l);
+                if(f(s->op(sm, s->d[l]))){
+                    sm = s->op(sm, s->d[l]);
+                    l++;
+                }
+            }
+            return l - s->size;
+        }
+        sm = s->op(sm, s->d[l]);
+        l++;
+    }while((l & -l) != l);
+    return s->_n;
+}
+
+int seg_min_left(seg *s, int r, bool (*f)(S)){
+    assert(0 <= r && r <= s->_n);
+    assert(f(s->e()));
+    if(r == 0) return 0;
+    r += s->size;
+    S sm = s->e();
+    do{
+        while(r > 1 && (r % 2)) r >>= 1;
+        if(!f(s->op(s->d[r], sm))){
+            while(r < s->size){
+                r = (2 * r + 1);
+                if(f(s->op(s->d[r], sm))){
+                    sm = s->op(s->d[r], sm);
+                    r--;
+                }
+            }
+            return r + 1 - s->size;
+        }
+        sm = s->op(s->d[r], sm);
+    }while((r & -r) != r);
+    return 0;
+}
+
+// segtreeここまで
+
+
+ll target;
+bool f(S s){
+    return s < target;
+}
+
+int main(void){
+    int n,q;
+    scanf("%d %d",&n,&q);
+ 
+    S a[n];
+    for(int i=0; i<n; i++){
+        scanf("%lld",&a[i]);
+    }
+    seg *s=seg_init(n,a,seg_op_max,seg_e_max);
+
+    ll p,x,y;
+    for(int i=0; i<q; i++){
+        scanf("%lld %lld %lld",&p,&x,&y);
+        if(p==1){
+            seg_set(s,x-1,y);
+        }
+        if(p==2){
+            printf("%lld\n",seg_prod(s,x-1,y));
+        }
+        if(p==3){
+            target = y;
+            printf("%d\n",seg_max_right(s,x-1,f)+1);
+        }
+    }
+    return 0;
+}
+
+
+
+/*
+内部実装、使い方共にACL準拠になっています。
+
+使用例: AtCoder Library Plactice Contest J問題 ACコード
+https://atcoder.jp/contests/practice2/submissions/20840820
+
+注意点
+・seg_min_leftは未verifyです。
+・同時に2種の方のセグ木を持つことができません。
+・要素を2つ以上持つ型を乗せる場合はSを構造体として定義しなおし、op,eを適宜書けば大丈夫だと思われます(未検証)。
+
+*/
